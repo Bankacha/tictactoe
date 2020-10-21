@@ -1,5 +1,6 @@
 import React from 'react';
 import { Row, Col, Button, FormControl } from 'react-bootstrap';
+import possibleCombinations from './possible-combinations.json';
 import './TicTac.css'
 
 export default class TicTacToe extends React.Component {
@@ -15,17 +16,23 @@ export default class TicTacToe extends React.Component {
             [null, null, null]
         ],
 
+        winnerPlayer: null,
+        winnerCombination: null,
+
         winner: false
     }
 
-    handleclick = (event) => {
+    resetGame = (event) => {
         const newMatrix = [
             [null, null, null],
             [null, null, null],
             [null, null, null]
         ]
+
         this.setState({
-            matrix: newMatrix
+            matrix: newMatrix,
+            winnerCombination: null,
+            winnerPlayer: null
         })
     }
 
@@ -38,7 +45,7 @@ export default class TicTacToe extends React.Component {
 
 
     assignClick = (row, col) => {
-        if (this.state.matrix[row][col] === null) {
+        if (this.state.matrix[row][col] === null && !this.state.winnerCombination) {
             const newMatrix = [...this.state.matrix];
             newMatrix[row][col] = this.state.currentPlayer
 
@@ -46,9 +53,43 @@ export default class TicTacToe extends React.Component {
                 matrix: newMatrix,
                 currentPlayer: this.state.currentPlayer === 'X' ? 'O' : 'X'
             })
+
+            const winnerCombination = this.calculateWinner();
+            
+            if (winnerCombination) {
+                this.setState({
+                    winnerCombination: winnerCombination.combination,
+                    winnerPlayer: winnerCombination.player
+                })
+            }
         }
     }
 
+    getValueByRowAndCol = (row, col) => {
+        return this.state.matrix[row][col];
+    }
+
+    calculateWinner = () => {
+        for (let comb of possibleCombinations) {
+            // [[0, 0], [0, 1], [0, 2]]  <-- comb
+
+            const values = comb.map(c => this.getValueByRowAndCol(c[0], c[1]));
+            // [null, "X", null] // <-- values
+
+            console.log({comb, values})
+
+            if (values.filter(value => value === null).length === 0) {
+                const [first, second, third] = values;
+
+                if (first === second && second === third) {
+                    return {
+                        combination: comb,
+                        player: first === 'X' ? this.state.player1 : this.state.player2
+                    };
+                }
+            }
+        }
+    }
 
     saveName = () => {
         this.setState({
@@ -56,7 +97,15 @@ export default class TicTacToe extends React.Component {
         })
     }
 
-    
+    isInWinningComb = (row, col) => {
+        if (this.state.winnerCombination) {
+            return !!this.state.winnerCombination.find(field => field[0] === row && field[1] === col);
+        }
+
+        return false;
+    }
+
+
     render() {
 
         const rows = this.state.matrix.map((r, rIdx) => {
@@ -67,7 +116,8 @@ export default class TicTacToe extends React.Component {
                         {
                             r.map((c, cIdx) => {
                                 return (
-                                    <Col onClick={() => this.assignClick(rIdx, cIdx)} key={cIdx} md={4} className='kontish'>
+                                    <Col onClick={() => this.assignClick(rIdx, cIdx)} key={cIdx} md={4}
+                                        className={`kontish ${this.isInWinningComb(rIdx, cIdx) ? 'winning' : ''}`}>
                                         <h1 className='text-center'>{c ? c : 'c'}</h1>
                                     </Col>
                                 )
@@ -94,9 +144,9 @@ export default class TicTacToe extends React.Component {
             <div>
 
 
-                <Row mb={5}className='justify-content-around'><Button  onClick={this.handleclick}>reset</Button></Row>
+                <Row mb={5} className='justify-content-around'><Button onClick={this.resetGame}>reset</Button></Row>
                 <Row md={4} className='justify-content-around'>
-                    
+
                     <Col> <p className='ime'> {this.state.isNameSaved ? this.state.player1 : ''} </p></Col>
 
 
@@ -107,32 +157,17 @@ export default class TicTacToe extends React.Component {
                     <Col> <p className='ime'>{this.state.isNameSaved ? this.state.player2 : ''} </p></Col>
 
                 </Row>
+                <Row>
+                    <Col>
+                        {
+                            this.state.winnerPlayer ? (
+                            <h3 className="text-center">Winner is: {this.state.winnerPlayer}</h3>
+                            ) : null
+                        }
+                    </Col>
+                </Row>
             </div>
         )
     }
 }
 
-
-
-calculateWinner = (matrica) => {
-    
-    const combinations = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ]
-    for(let i = 0; i < combinations.length; i++) {
-        const[a,b,c] = combinations[i];
-        if(combinations[a] && combinations[a] === combinations[b] && combinations[b] === combinations[c]) {
-            return combinations[a]
-        }
-    }
-    
-    
-    return null;
-}

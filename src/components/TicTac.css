@@ -7,3 +7,7 @@
         border: 2px solid rgb(0, 0, 0);
         border-radius: 5px;
 }        
+
+.winning {
+  background: #75f775;
+}
