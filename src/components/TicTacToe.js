@@ -55,7 +55,7 @@ export default class TicTacToe extends React.Component {
             })
 
             const winnerCombination = this.calculateWinner();
-            
+
             if (winnerCombination) {
                 this.setState({
                     winnerCombination: winnerCombination.combination,
@@ -69,14 +69,16 @@ export default class TicTacToe extends React.Component {
         return this.state.matrix[row][col];
     }
 
+    getValuesByCombinationArray = (comb) => {
+        return comb.map(c => this.getValueByRowAndCol(c[0], c[1]));
+    }
+
     calculateWinner = () => {
         for (let comb of possibleCombinations) {
             // [[0, 0], [0, 1], [0, 2]]  <-- comb
 
-            const values = comb.map(c => this.getValueByRowAndCol(c[0], c[1]));
+            const values = this.getValuesByCombinationArray(comb);
             // [null, "X", null] // <-- values
-
-            console.log({comb, values})
 
             if (values.filter(value => value === null).length === 0) {
                 const [first, second, third] = values;
@@ -161,7 +163,7 @@ export default class TicTacToe extends React.Component {
                     <Col>
                         {
                             this.state.winnerPlayer ? (
-                            <h3 className="text-center">Winner is: {this.state.winnerPlayer}</h3>
+                                <h3 className="text-center">Winner is: {this.state.winnerPlayer}</h3>
                             ) : null
                         }
                     </Col>
